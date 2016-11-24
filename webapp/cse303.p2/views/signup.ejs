@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Athlete Surveys</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <script src="/js/jquery-2.1.4.min.js"></script>
+  <link rel="stylesheet" href="/css/luqa.css">
+ </head>
+ <body>
+  <div class="container">
+
+   <div class="jumbotron text-center">
+    <img src="/lulogo.jpg">
+    <h1><span class="fa"></span>Student Athlete Surveys</h1>
+   </div>
+
+   <div class="panel panel-default">
+    <h1><span class="fa fa-sign-in"></span> Sign Up</h1>
+
+    <% if (message.length > 0) { %>
+    <div class="alert alert-danger"><%= message %></div>
+    <% } %>
+
+    <form action="/signup" method="post">
+     <div class="form-group">
+      <label>Email</label>
+      <input type="text" class="form-control" name="email">
+     </div>
+     <div class="form-group">
+      <label>Password</label>
+      <input type="password" class="form-control" name="password">
+     </div>
+     <button type="submit" style='width:100%' class="btn btn-warning btn-lg">Sign Up</button>
+    </form>
+    
+    <hr>
+    
+    <p>Already have an account? <a href="/login">Login</a></p>
+    <p>Or <a href="/">take the survey</a>.</p>
+   </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Athlete Surveys</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <script src="/js/jquery-2.1.4.min.js"></script>
+  <link rel="stylesheet" href="/css/luqa.css">
+ </head>
+ <body>
+  <div class="container">
+   
+   <div class="jumbotron text-center">
+    <img src="/lulogo.jpg">
+    <button class='btn btn-default logoutbutton'>Log Out</button>
+    <h1><span class="fa"></span>Student Athlete Surveys</h1>
+   </div>
+
+   <div class="panel panel-default" id="qzone">
+   </div>
+  </div>
+
+  <script>
+    // do an AJAX request to get the current question
+    function advance() {
+        $.ajax({
+            type : "GET",
+            url  : "/currq",
+            success : handleAjax
+        });
+    }
+
+    function doAnswer(idx, txt) {
+        if (txt !== "") {
+            $('#qzone').append("<button style='width:100%' class='btn btn-default btn-lg'>" + txt + "</button>");
+        }
+    }
+
+    // for when we're asking a question
+    function doAsking(reply) {
+        $('#qzone').html("<h2 class='text-center'>"+reply.question.question+"</h2><hr />");
+        doAnswer(1, reply.question.ans1);
+        doAnswer(2, reply.question.ans2);
+        doAnswer(3, reply.question.ans3);
+        doAnswer(4, reply.question.ans4);
+        doAnswer(5, reply.question.ans5);
+        $('#qzone').append("<br /><br />");
+        $('#qzone').append("<button class='btn btn-lg btn-success' style='width:100%' id='doneAsk'>End Response Period</button>");
+        $('#doneAsk').click(function() {
+            $.ajax({
+                type : "PUT",
+                url  : "/admin/" + reply.session._id,
+                data : {session: reply.session._id},
+                success : function(res){
+                    if (res === "OK")
+                        advance();
+                    else
+                        window.alert("There was an error advancing the survey.");
+                }
+            });
+        });
+    }
+
+    // when the survey is still "new"
+    function doNew(reply) {
+        $('#qzone').html("<h2 class='text-center'>Click 'Begin' to start the survey</h2><ul>");
+        $('#qzone').append("<hr /><button id='doneNew' style='width:100%' class='btn btn-success btn-lg'>Begin</button><br /><br/>");
+        $('#doneNew').click(function(){
+            $.ajax({
+                type : "PUT",
+                url  : "/admin/" + reply.session._id,
+                data : {session: reply.session._id},
+                success : function(res){
+                    if (res === "OK")
+                        advance();
+                    else
+                        window.alert("There was an error advancing the survey.");
+                }
+            });
+        });
+    }
+
+    // for when the survey is done
+    function doDone(reply){
+        $('#qzone').html("<h2 class='text-center'>The survey is complete</h2><hr />");
+        $('#qzone').append("<button class='btn btn-lg btn-success' style='width:100%' id='doneDone'>View Results</button><br /><br />");
+        $('#doneDone').click(function(event){
+            window.location.href = "/summary/" + reply.session._id;
+        });
+    }
+
+  // parse the data and display it
+  function parseAllData(result) {
+      var data = JSON.parse(result);
+      console.log(data);
+      for (var i = 0; i < data.q.length; ++i) {
+          $('#dump').append("<h3>"+data.q[i].question+"</h3>");
+          var ans = [0, 0, 0, 0, 0, 0];
+          var total = 0;
+          for (var j = 0; j < data.a.length; ++j) {
+              if (data.a[j].question === data.q[i]._id && data.a[j].session === session) {
+                  ans[data.a[j].answer]++;
+                  total++;
+              }
+          }
+          for (var k = 1; k < 6; ++k) {
+              var a = data.q[i]['ans'+k]
+              if (a !== "" && ans[k] > 0) {
+                  $('#dump').append("<h4>"+a+" <div><img src='/brown.png' style='height:1em;width:"+(75*ans[k]/total)+"%' /> ("+ans[k]+"/"+total+") </div></h4>");
+              }
+              else {
+                  $('#dump').append("<h4>"+a+"</h4><div>&nbsp;</div>");                  
+              }
+          }
+      }
+  }
+
+    // summarize a question
+    function summarize(reply) {
+        if (!reply.question)
+            return;
+        $.ajax({
+            type    : "GET",
+            url     : "/summary/details/"+reply.question._id,
+            success : parseAllData
+        });
+    }
+
+    // when summarizing the results of a question
+    function doSummarize(reply) {
+        $('#qzone').html("<h2 class='text-center'>Question Summary</h2><hr /><div id='dump'></div>");
+        summarize(reply);
+        $('#qzone').append("<button id='doneSummarize' style='width:100%' class='btn btn-lg btn-success'>Start Next Question</button><br /><br/>");
+        $('#doneSummarize').click(function(){
+            $.ajax({
+                type : "PUT",
+                url  : "/admin/" + reply.session._id,
+                data : {session: reply.session._id},
+                success : function(res){
+                    if (res === "OK")
+                        advance();
+                    else
+                        window.alert("There was an error advancing the survey.");
+                }
+            });
+        });
+    }
+
+    var session;
+
+    // handle an ajax response
+    function handleAjax(res) {
+        var reply = JSON.parse(res);
+        session = reply.session._id;
+        if (reply.session.state === "asking") {
+            doAsking(reply);
+        }
+        else if (reply.session.state === "summarize") {
+            doSummarize(reply);
+        }
+        else if (reply.session.state === "done") {
+            doDone(reply);
+        }
+        else if (reply.session.state === "new") {
+            doNew(reply);
+        }
+    }
+
+    $(document).ready(function(){
+        // wire up the logout button
+        $('.logoutbutton').click(function(){window.location.href='/logout';});
+        // kick off the interface
+        advance();
+    });
+  </script>
+ </body>
+</html>

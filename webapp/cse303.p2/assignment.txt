@@ -1,0 +1,145 @@
+CSE303 - Fall 2016
+Assignment #2: Virtualization and Cloud Computing
+
+Purpose and General Guidelines:
+
+  The explosion of apps in the last decade relies critically on
+  virtualization technologies.  Cloud service providers offer "Infrastructure
+  as a Service" (IaaS) and "Platform as a Service" (PaaS).The idea behind
+  IaaS and PaaS is that huge cloud service providers like Amazon and
+  Microsoft can offer affordable virtual compute resources that are easy to
+  use for building systems both large and small.  These systems can be billed
+  at extremely fine granularity, and enable apps to scale in response to
+  demand.
+
+  As IaaS and PaaS has grown, a host of technologies have emerged to make it
+  easier to rapidly deploy apps.  Some best practices have emerged as well.
+  In this assignment, you will deploy an app that the professors have
+  created.  In this way, you'll be able to learn about launching apps and
+  securing them.  You'll also get to use some great virtualized resources.
+
+  In terms of buzzwords, this is a project that will let you use Amazon Web
+  Services to deploy an app that uses Google-based OAuth authentication,
+  Bootstrap and JQuery for the front-end, and Node.js, MongoDB, and Memcached
+  for the back-end.  You can use this project as a framework for your own
+  start-up, senior project, or other digital creations.  But be
+  warned... these are industry standard tools.  If you intend to highlight
+  your completion of this project in a job or grad school interview, you
+  should be sure to study the components in depth.  An employer is likely to
+  ask "Why MongoDB instead of MySQL", or "What do you think of Node's
+  single-thread event model", or "Was it easy to use Memcached".  If you
+  can't answer these questions, your credibility will erode quickly.  So
+  learn this for your own sake.
+
+Getting Started
+
+  We have provided a tar file with the entire code for a web application at
+  /proj/spear0/cse303_p2.tgz.  You will not be able to use this code right
+  away... first you will need to set up some servers and services, so that
+  you can configure the app appropriately.
+
+  Your first task is to create an account on Amazon Web Services.  You can
+  get by with a free account, which limits you to about 700 hours of VM time
+  per month.  Be careful, though... you will need three VMs to get the job
+  done, and if you start them all right away, and leave them all running all
+  month, you'll end up being billed!  Note, too, that Lehigh has an academic
+  arrangement with Amazon.  If you start early, you will be able to work your
+  way through this process to get free access to AWS.
+
+  You will also need to register your app with Google, so you can do OAuth
+  authentication.  A reasonable tutorial can be found here:
+  https://scotch.io/tutorials/easy-node-authentication-google
+
+  Lastly, you should read about the "Twelve Factor App" at
+  http://12factor.net/.  Our app doesn't quite do all of this as it should,
+  but it's not bad.
+
+  Once you've got your accounts and VMs created, you should launch 3 VMs on
+  AWS.  It's probably easiest to create VMs that run Ubuntu, since most
+  tutorials assume Ubuntu.  Name one VM "mcd", one "mongo", and one "node".
+  Install the relevant software on each, and then figure out how to get the
+  code we provided onto your "node" instance.
+
+  Edit the code so that it has all of the account information for your app,
+  and then run the "qloader.js" script to initialize the database.  You
+  should also carefully configure the security groups inside of AWS, so that
+  *only* your node instance can access your mongo and mcd instances, and so
+  that your node instance is only reachable on port 8080.
+
+  When all is said and done, you should have a public web address that you
+  can use to administer the app and use it.  The app is rather simple: an
+  interactive survey tool that our athletic department uses.  If you read the
+  code, you'll see that it is easy to start changing this into whatever app
+  you wish to make.
+
+Graded Activities:
+
+  The entire turn-in for this assignment will consist of a single PDF file.
+  Note that there are many sub-parts of the assignment.
+
+  50% of your grade will be based on demonstrating that you have your program
+  up and running on AWS.  Your PDF will need to have a few screenshots to
+  prove success.  Make sure that your screenshots are legible when/if we
+  print your PDF.  The screenshots must show:
+    1 - Your app running in a browser, with the address bar clearly visible.
+        This will probably take a few screenshots, to demonstrate that (a)
+        the management webpage works; (b) the survey-taker website works; and
+        (c) the data is being collected (e.g., the bar charts are non-zero).
+    2 - The AWS configuration panels, showing 3 VMs running
+    3 - The security settings for your app, showing that only the node VM can
+        reach the mongo and mcd VMs.
+    4 - The Google Developer Console, showing that your app is configured to
+        use OAuth.
+  Note: The app has two parts: a management console and a user console.  Make
+        sure you understand what is going on.
+
+  The other 50% of your grade will be based on written responses to the
+  following questions, each of which shouldn't take more than 10 sentences to
+  answer:
+
+  1 - mlab.com provides SaaS (Software as a Service), in the form of MongoDB
+      hosting.  What is one benefit of using mlab?  What is one drawback,
+      relative to running your own MongDB server?  (Note: your answers to the
+      two parts of this question cannot be derivable from each other.  For
+      example, if your answer to the first is "SaaS has more X", then your
+      answer to the second cannot be "IaaS has less X".)
+
+  2 - Read about Eventual Consistency.  Is Eventual Consistency a problem for
+      this application?  If so, why?  If not, what conditions could lead to
+      Eventual Consistency becoming a problem?
+
+  3 - Choose one factor from the 12-factor app that is handled well by our
+      app, describe the factor, and describe why it is done well by our code.
+
+  4 - Choose one factor from the 12-factor app that is handled badly by our
+      app, describe the factor, and describe why it is done badly by our
+      code.
+
+  5 - There is a concurrency bug in our code, where it's possible to respond
+      to a "closed" question.  In our architecture (Node, Mongo), is this bug
+      solvable?  Is it really a problem?
+
+  6 - There is another bug, where the anonymity of survey takers means that
+      someone could take the survey more than once.  How would you solve this
+      without violating anonymity?  Is it possible?
+
+  7 - Study the code that interacts with Memcached.  Remarkably, we can use
+      memcached to cache more than just data, e.g., the results of expensive
+      computations.  Propose additional caching that could be employed to
+      speed up this application.
+
+  8 - Heroku is a popular PaaS.  Review the Heroku website and tutorials, and
+      suggest technical reasons why PaaS on Heroku would be inferior to VMs
+      on AWS for this app.
+
+  9 - Suggest teghnical reasons why PaaS on Heroku would be superior to VMs
+      on AWS for this app.
+
+Turn-In Instructions
+
+  To turn in your assignment, copy your PDF to a secure location on the
+  sunlab, and then submit it with the command:
+    /proj/spear0/cse303-submit-p2.pl xyz.pdf
+  Where xyz.pdf is the name of your PDF file.
+
+  Note that this is a team project.  You may work in teams of up to two.

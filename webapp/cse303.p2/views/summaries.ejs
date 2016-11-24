@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Athlete Surveys</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <script src="/js/jquery-2.1.4.min.js"></script>
+  <link rel="stylesheet" href="/css/luqa.css">
+ </head>
+ <body>
+  <div class="container">
+   
+   <div class="jumbotron text-center">
+    <img src="/lulogo.jpg">
+    <h1><span class="fa"></span>Student Athlete Surveys</h1>
+   </div>
+
+   <div class="panel panel-default">
+    <table class="table table-striped">
+     <thead>
+      <tr><th>Name</th><th>Status</th><th style="width:50px"></th></tr>
+     </thead>
+     <tbody>
+      <% for (var i = 0; i < data.length; ++i) { %>
+      <% if (data[i].state === "done") { %>
+      <tr>
+       <td style="vertical-align:middle"><%= data[i].name %></td>
+       <td style="vertical-align:middle">FINISHED</td>
+       <td><button class="btn btn-default" id="o<%= data[i]._id %>">Results</button></td>
+      </tr>
+      <% } %>
+      <% } %>
+     </tbody>
+    </table>
+   </div>
+  </div>
+
+  <script>
+   $(document).ready(function(){
+       // wire up the buttons within the table
+       $("td button").click(function(event){
+           if (event.target.id === "newbtn") {
+               $.ajax({
+                   type : "POST",
+                   url  : "/admin",
+                   data : {
+                       name : $('#newname')[0].value
+                   },
+                   success : function(ans) {
+                       if (ans !== "ERROR")
+                           window.location.reload();
+                       else
+                           window.alert("Error creating new session");
+                   }
+               });
+           }
+           else {
+               // shortcut for the reports button
+               if (event.target.id[0] === 'o') {
+                   window.location.href = "/summary/" + event.target.id.slice(1);
+                   return;
+               }
+               // activate it
+               $.ajax({
+                   type : "PUT",
+                   url  : "/admin",
+                   data : {
+                       session : event.target.id.slice(1)
+                   },
+                   success : function(ans) {
+                       if (ans !== "ERROR")
+                           window.location.href = "/admin/" + event.target.id.slice(1);
+                       else
+                           window.alert("Error activating session");
+                   }
+               });
+           }
+       });
+       // wire up the logout button
+       $('.logoutbutton').click(function(){window.location.href='/logout';});
+   });
+  </script>
+ </body>
+</html>

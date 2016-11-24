@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Athlete Surveys</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <script src="/js/jquery-2.1.4.min.js"></script>
+  <link rel="stylesheet" href="/css/luqa.css">
+ </head>
+ <body>
+  <div class="container" id="container">
+
+   <div class="jumbotron text-center">
+    <img src="/lulogo.jpg">
+    <h1><span class="fa"></span><%- name %></h1>
+   </div>
+  </div>
+
+  <script>
+  // parse the data and display it
+  function parseAllData(result) {
+      var data = JSON.parse(result);
+      for (var i = 0; i < data.q.length; ++i) {
+          $('#container').append("<div class='panel panel-default' id='panel"+i+"'></div>");
+          $('#panel'+i).append("<h3 class='text-center'>"+data.q[i].question+"</h3><hr />");
+          var ans = [0, 0, 0, 0, 0, 0];
+          var total = 0;
+          for (var j = 0; j < data.a.length; ++j) {
+              if (data.a[j].question === data.q[i]._id) {
+                  ans[data.a[j].answer]++;
+                  total++;
+              }
+          }
+          for (var k = 1; k < 6; ++k) {
+              var a = data.q[i]['ans'+k]
+              if (a !== "" && ans[k] > 0) {
+                  $('#panel'+i).append("<h4>"+a+" <div><img src='/brown.png' style='height:1em;width:"+(75*ans[k]/total)+"%' /> ("+ans[k]+"/"+total+") </div></h4>");
+              }
+              else {
+                  $('#panel'+i).append("<h4>"+a+"</h4><div>&nbsp;</div>");                  
+              }
+          }
+      }
+  }
+
+  $(document).ready(function(){
+      $.ajax({
+          type    : "GET",
+          url     : "/summary/details/<%= data %>",
+          success : parseAllData
+      });
+  });
+  </script>
+ </body>
+</html>

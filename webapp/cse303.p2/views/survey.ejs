@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Athlete Survey</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <script src="/js/jquery-2.1.4.min.js"></script>
+  <link rel="stylesheet" href="/css/luqa.css">
+ </head>
+ <body>
+  <div class="container">
+   <div class="jumbotron text-center">
+    <img src="/lulogo.jpg">
+    <h1><span class="fa"></span>Student Athlete Survey</h1>
+   </div>
+   <div class="panel panel-default" id="qzone"></div>
+  </div>
+  
+  <script>
+    var lastans = 0;
+    var session = "";
+    var question = "";
+
+    // make a button
+    function doButton(idx, txt) {
+        if (txt !== "") {
+            $('#qzone').append("<button style='width:100%' id='b" + idx
+                               + "' class='btn btn-default btn-lg'>" + txt
+                               + "</button>");
+        }
+    }
+
+    // handle button click
+    function onButton(event) {
+        $.ajax({
+            type : "POST",
+            url  : "/",
+            data : {
+                question : question,
+                choice   : event.target.id.slice(1),
+                session  : session
+            },
+            success : function(res) {
+                if (res === "ERROR") {
+                    $('#qzone').append("<h2>Error... please refresh your page</h2>");
+                    return;
+                }
+                advance();
+            }
+        });
+    }
+
+    // on ajax request
+    function handleAjax(res) {
+        var reply = JSON.parse(res);
+        if (reply.error === "nosession") {
+            $('#qzone').html("<h2>There is no active survey</h2>");
+            setTimeout(advance, 2000);
+            return;
+        }
+        if (session === "") {
+            session = reply.session._id;
+        }
+        if (reply.session.state === "new") {
+            $('#qzone').html("<h2>The current survey has not yet started</h2>");
+            setTimeout(advance, 2000);
+        }
+        if (reply.session.state === "done") {
+            $('#qzone').html("<h2>The current survey has ended</h2>");
+        }
+        else if (lastans === reply.question.qid || reply.session.state === "summarize") {
+            var text = ""
+            if (lastans === reply.question.qid)
+                text += "<h2 class='text-center'>Thank You</h2><hr />";
+            $('#qzone').html(text+"<h3>The next question will load shortly...</h3>");
+            setTimeout(advance, 2000);
+        }
+        else if (reply.session.state === "asking") {
+            lastans = reply.question.qid;
+            question = reply.question._id;
+            $('#qzone').html("<h2 class='text-center'>"+reply.question.question+"</h2><hr />");
+            doButton(1, reply.question.ans1);
+            doButton(2, reply.question.ans2);
+            doButton(3, reply.question.ans3);
+            doButton(4, reply.question.ans4);
+            doButton(5, reply.question.ans5);
+            $('button').click(onButton);
+            $('#qzone').append("<br />&nbsp;<br />");
+        }
+    }
+
+    function advance() {
+        $.ajax({
+            type : "GET",
+            url  : "/currq",
+            success : handleAjax
+        });
+    }
+
+    $(document).ready(function(){
+        advance();
+    });
+  </script>
+ </body>
+</html>
